@@ -27,6 +27,7 @@ pub struct Buffer<T> {
     _pad3: [u64; 15],
     pub capacity: usize,
     mask: usize,
+    _pad4: [u64; 15],
     items: *mut Item<T>
 }
 
@@ -44,6 +45,7 @@ impl<T> Buffer<T> {
             _pad1: [0; 15],
             _pad2: [0; 15],
             _pad3: [0; 15],
+            _pad4: [0; 15],
         }
     }
 
