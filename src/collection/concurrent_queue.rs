@@ -35,24 +35,6 @@ pub trait ConcurrentQueue<T> {
     /// }
     /// ```
     fn poll(&self) -> Option<T>;
-    
-    /// Tries to peek a value from the queue.
-    ///
-    /// If the queue is not empty, the method returns `Some(v)`, where `v` is 
-    /// the value at the head of the queue. If the queue is empty, it returns 
-    /// `None`.
-    ///
-    /// # Examples
-    ///
-    /// ```
-    /// use cosmo::collection::{ConcurrentQueue, SpscConcurrentQueue};
-    /// let queue = SpscConcurrentQueue::<u64>::with_capacity(16);
-    /// match queue.peek() {
-    ///     Some(v) => println!("Peeked value {}", v),
-    ///     None => println!("Queue is empty")
-    /// }
-    /// ```
-    fn peek(&self) -> Option<T>;
 
     /// Returns the capacity of the queue.
     ///

@@ -30,6 +30,37 @@ impl<T> SpscConcurrentQueue<T> {
     }
 }
 
+impl<T: Clone> SpscConcurrentQueue<T> {
+    /// Tries to peek a value from the queue. The value needs to be Clone 
+    /// since the value in the queue can't be moved out.
+    ///
+    /// If the queue is not empty, the method returns `Some(v)`, where `v` is
+    /// the value at the head of the queue. If the queue is empty, it returns
+    /// `None`.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use cosmo::collection::{ConcurrentQueue, SpscConcurrentQueue};
+    /// let queue = SpscConcurrentQueue::<u64>::with_capacity(16);
+    /// match queue.peek() {
+    ///     Some(v) => println!("Peeked value {}", v),
+    ///     None => println!("Queue is empty")
+    /// }
+    /// ```
+    pub fn peek(&self) -> Option<T> {
+        let index = self.buffer.head.load(Ordering::Relaxed);
+        unsafe {
+            let item = self.buffer.item(index);
+            if item.is_defined.load(Ordering::Acquire) {
+                Some((&*value_ptr(item)).clone())
+            } else {
+                None
+            }
+        }
+    }
+}
+
 impl<T> ConcurrentQueue<T> for SpscConcurrentQueue<T> {
     /// Puts an item in the queue. This method only reads and modifies the 
     /// `tail` index, thus avoiding cache line ping-ponging.
@@ -79,29 +110,6 @@ impl<T> ConcurrentQueue<T> for SpscConcurrentQueue<T> {
             let res = ptr::read(value_ptr(item));
             item.is_defined.store(false, Ordering::Release);
             Some(res)
-        }
-    }
-
-    /// Peeks an item in the queue.
-    ///
-    /// # Example
-    ///
-    /// ```
-    /// use cosmo::collection::{ConcurrentQueue, SpscConcurrentQueue};
-    /// let q = SpscConcurrentQueue::<u64>::with_capacity(1024);
-    /// q.offer(10);
-    /// assert_eq!(Some(10), q.peek());
-    /// ```
-    fn peek(&self) -> Option<T> {
-        let buffer = &self.buffer;
-        let index = buffer.head.load(Ordering::Relaxed);
-        unsafe {
-            let item = buffer.item(index);
-            if item.is_defined.load(Ordering::Acquire) {
-                Some(ptr::read(value_ptr(item)))
-            } else {
-                None
-            }
         }
     }
 
@@ -168,6 +176,16 @@ mod test {
         dropped: Arc<AtomicBool>
     }
 
+    impl Clone for Payload {
+        fn clone(&self) -> Payload {
+            let is_dropped = self.dropped.load(Ordering::Relaxed);
+            Payload { 
+                value: self.value, 
+                dropped: Arc::new(AtomicBool::new(is_dropped))
+            }
+        }
+    }
+
     impl Drop for Payload {
         fn drop(&mut self) {
             self.dropped.store(true, Ordering::Relaxed);
@@ -192,6 +210,23 @@ mod test {
         assert!(!dropped.load(Ordering::Relaxed));
         mem::drop(p2);
         assert!(dropped.load(Ordering::Relaxed));
+    }
+
+    #[test]
+    fn peeked_items_are_cloned() {
+        let q = SpscConcurrentQueue::<Payload>::with_capacity(2);
+        let dropped = Arc::new(AtomicBool::new(false));
+        let p1 = Payload { value: 67, dropped: dropped.clone() };
+        assert!(q.is_empty());
+        assert_eq!(None, q.offer(p1));
+        let p2 = q.peek().unwrap();
+        let dropped2 = p2.dropped.clone();
+        assert_eq!(67, p2.value);
+        assert!(!dropped.load(Ordering::Relaxed));
+        assert!(!dropped2.load(Ordering::Relaxed));
+        mem::drop(p2);
+        assert!(!dropped.load(Ordering::Relaxed));
+        assert!(dropped2.load(Ordering::Relaxed));
     }
 
     #[test]
