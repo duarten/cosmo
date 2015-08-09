@@ -11,3 +11,4 @@ This crate aims to provide high perfomance concurrency tools for Rust, such as:
 Use `cargo build` to build the crate, `cargo test` to run the unit-tests and
 `cargo bench` to run the benchmarks.
 
+Documentation can be viewed [here](http://duarten.github.io/cosmo).
