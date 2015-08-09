@@ -9,7 +9,7 @@ use super::concurrent_queue::ConcurrentQueue;
 
 /// A bounded queue allowing a single producer and a single consumer.
 pub struct SpscConcurrentQueue<T> {
-    buffer: Arc<Buffer<T>>
+    buffer: Buffer<T>
 }
 
 impl<T> SpscConcurrentQueue<T> {
@@ -23,14 +23,10 @@ impl<T> SpscConcurrentQueue<T> {
     /// let q = SpscConcurrentQueue::<u64>::with_capacity(1024);
     /// assert_eq!(1024, q.capacity());
     /// ```
-    pub fn with_capacity(initial_capacity: usize) -> SpscConcurrentQueue<T> {
-        SpscConcurrentQueue { buffer: Buffer::with_capacity(initial_capacity) }
-    }
-}
-
-impl<T> Clone for SpscConcurrentQueue<T> {
-    fn clone(&self) -> Self {
-        SpscConcurrentQueue { buffer: self.buffer.clone() }
+    pub fn with_capacity(initial_capacity: usize) -> Arc<SpscConcurrentQueue<T>> {
+        Arc::new(SpscConcurrentQueue { 
+            buffer: Buffer::with_capacity(initial_capacity) 
+        })
     }
 }
 

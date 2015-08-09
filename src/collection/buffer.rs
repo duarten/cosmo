@@ -3,7 +3,6 @@ extern crate core;
 
 use self::alloc::heap::{allocate, deallocate};
 use self::core::{mem, ptr};
-use std::sync::Arc;
 use std::sync::atomic::{AtomicBool, AtomicUsize, Ordering};
 
 /// A data item, containing a value of type T and a flag indicating whether 
@@ -34,9 +33,9 @@ pub struct Buffer<T> {
 impl<T> Buffer<T> {
     /// Creates a Buffer with the specified capacity, which is rounded to
     /// the next power of two.
-    pub fn with_capacity(min_capacity: usize) -> Arc<Buffer<T>> {
+    pub fn with_capacity(min_capacity: usize) -> Buffer<T> {
         let capacity = min_capacity.next_power_of_two();
-        Arc::new(Buffer { 
+        Buffer { 
             tail: AtomicUsize::new(0),
             head: AtomicUsize::new(0), 
             capacity: capacity,
@@ -45,7 +44,7 @@ impl<T> Buffer<T> {
             _pad1: [0; 15],
             _pad2: [0; 15],
             _pad3: [0; 15],
-        })
+        }
     }
 
     /// Returns the data item at the position specified by the index.
