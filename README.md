@@ -4,7 +4,8 @@
 
 This crate aims to provide high perfomance concurrency tools for Rust, such as:
 
-* A single producer single consumer concurrent queue
+* A bounded single producer single consumer concurrent queue
+* A bounded single producer multiple consumer concurrent queue
 * ...
 
 Use `cargo build` to build the crate, `cargo test` to run the unit-tests and
