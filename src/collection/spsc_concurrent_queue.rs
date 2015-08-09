@@ -73,14 +73,13 @@ impl<T> ConcurrentQueue<T> for SpscConcurrentQueue<T> {
     /// assert_eq!(None, q.offer(10));
     /// ```
     fn offer(&self, val: T) -> Option<T> {
-        let buffer = &self.buffer;
-        let index = buffer.tail.load(Ordering::Relaxed);
+        let index = self.buffer.tail.load(Ordering::Relaxed);
         unsafe { 
-            let item = buffer.item(index);
+            let item = self.buffer.item(index);
             if item.is_defined.load(Ordering::Acquire) {
                 return Some(val)
             }
-            buffer.tail.store(index + 1, Ordering::Relaxed);
+            self.buffer.tail.store(index + 1, Ordering::Relaxed);
             ptr::write(value_ptr(item), val);
             item.is_defined.store(true, Ordering::Release);
             None
@@ -99,14 +98,13 @@ impl<T> ConcurrentQueue<T> for SpscConcurrentQueue<T> {
     /// assert_eq!(Some(10), q.poll());
     /// ```
     fn poll(&self) -> Option<T> {
-        let buffer = &self.buffer;
-        let index = buffer.head.load(Ordering::Relaxed);
+        let index = self.buffer.head.load(Ordering::Relaxed);
         unsafe {
-            let item = buffer.item(index);
+            let item = self.buffer.item(index);
             if !item.is_defined.load(Ordering::Acquire) {
                 return None;
             }
-            buffer.head.store(index + 1, Ordering::Relaxed);
+            self.buffer.head.store(index + 1, Ordering::Relaxed);
             let res = ptr::read(value_ptr(item));
             item.is_defined.store(false, Ordering::Release);
             Some(res)
