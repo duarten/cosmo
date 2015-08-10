@@ -2,6 +2,8 @@
 
 [![Nightly Build Status](https://travis-ci.org/duarten/cosmo.svg?branch=master)](https://travis-ci.org/duarten/cosmo)
 
+[![Coverage Status](https://coveralls.io/repos/duarten/cosmo/badge.svg?branch=master&service=github)](https://coveralls.io/github/duarten/cosmo?branch=master)
+
 This crate aims to provide high perfomance concurrency tools for Rust, such as:
 
 * A bounded single producer single consumer concurrent queue
