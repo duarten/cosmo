@@ -1,0 +1,1 @@
+initSidebarItems({"struct":[["SpmcConcurrentQueue","A bounded queue allowing a single producer and multiple consumers."]]});

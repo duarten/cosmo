@@ -1,0 +1,1 @@
+initSidebarItems({"struct":[["SpscConcurrentQueue","A bounded queue allowing a single producer and a single consumer."]]});
