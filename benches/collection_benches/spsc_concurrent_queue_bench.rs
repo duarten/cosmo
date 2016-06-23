@@ -1,11 +1,10 @@
 extern crate cosmo;
 extern crate test;
-extern crate time;
 
 use self::test::Bencher;
 use std::sync::{Arc, Barrier};
 use std::thread;
-use self::time::PreciseTime;
+use std::time::Instant;
 use self::cosmo::collection::ConcurrentQueue;
 use self::cosmo::collection::SpscConcurrentQueue;
 
@@ -37,7 +36,7 @@ fn throughput(b: &mut Bencher) {
 
         barrier.wait();
 
-        let start = PreciseTime::now();
+        let start = Instant::now();
 
         for _ in 0..REPETITIONS as u64 {
             let mut opt: Option<u64>;
@@ -50,11 +49,10 @@ fn throughput(b: &mut Bencher) {
             test::black_box(opt);
         }
 
-        let end = PreciseTime::now();
-        let duration = start.to(end).num_nanoseconds().unwrap() as u64;
-        let ops = (REPETITIONS * 1000_000_000) / duration;
-        let op = duration as f64 / REPETITIONS as f64; 
-        println!("SPSC Queue - ops/sec={} - ns/op={:.3}", ops, op);
+        let end = start.elapsed();
+        let duration = end.as_secs() as f64 + end.subsec_nanos() as f64 / 1000_000_000.0;
+        let ops = REPETITIONS as f64 / duration;
+        println!("SPSC Queue - ops/sec={}", ops, op);
     });
 }
 
