@@ -15,6 +15,3 @@ readme = "README.md"
 name = "cosmo"
 crate-type = ["dynlib"]
 
-[dependencies.time]
-time = "*"
-
