@@ -1,0 +1,101 @@
+on:
+    pull_request:
+        branches: [main]
+        types: ["opened", "synchronize"]
+    push:
+        branches: [main]
+    merge_group:
+        branches: [main]
+
+concurrency:
+    group: ${{ github.ref }}
+    cancel-in-progress: true
+
+jobs:
+    test:
+        runs-on: ubuntu-latest
+        steps:
+            - uses: actions/checkout@v3
+
+            - name: Install stable toolchain
+              uses: actions-rs/toolchain@v1
+              with:
+                  toolchain: 1.63
+
+            - name: Run cargo test
+              uses: actions-rs/cargo@v1
+              with:
+                  command: test
+                  args: --all-features --no-fail-fast
+
+    clippy:
+        runs-on: ubuntu-latest
+        steps:
+            - uses: actions/checkout@v3
+
+            - name: Install stable toolchain with clippy available
+              uses: actions-rs/toolchain@v1
+              with:
+                  toolchain: 1.63
+                  components: clippy
+
+            - name: Run cargo clippy
+              uses: actions-rs/clippy-check@v1
+              with:
+                  token: ${{ secrets.GITHUB_TOKEN }}
+                  args: --all-features --all-targets -- -D warnings
+
+    rustfmt:
+        runs-on: ubuntu-latest
+        steps:
+            - uses: actions/checkout@v3
+
+            - name: Install nightly toolchain with rustfmt available
+              uses: actions-rs/toolchain@v1
+              with:
+                  profile: minimal
+                  toolchain: nightly
+                  override: true
+                  components: rustfmt
+
+            - name: Run cargo fmt
+              uses: actions-rs/cargo@v1
+              with:
+                  command: fmt
+                  args: --all -- --check
+
+    coverage:
+        runs-on: ubuntu-latest
+        if: github.event_name != 'merge_group'
+        steps:
+            - uses: actions/checkout@v3
+
+            - name: Install nightly toolchain with llvm-tools-preview available
+              uses: actions-rs/toolchain@v1
+              with:
+                  toolchain: 1.63
+                  components: llvm-tools-preview
+
+            - name: Install grcov
+              uses: actions-rs/cargo@v1
+              with:
+                  command: install
+                  args: grcov
+
+            - name: Run cargo test
+              uses: actions-rs/cargo@v1
+              with:
+                  command: test
+                  args: --all-features --no-fail-fast
+              env:
+                  RUSTFLAGS: "-C instrument-coverage"
+                  LLVM_PROFILE_FILE: "report-%p-%m.profraw"
+
+            - name: Run grcov
+              run: grcov . --output-type lcov --binary-path target/debug/ -s . --branch --ignore-not-existing --ignore "*cargo*" --llvm -o coverage.lcov
+
+            - name: Upload coverage
+              uses: codecov/codecov-action@v3
+              with:
+                  files: coverage.lcov
+                  flags: unittests
