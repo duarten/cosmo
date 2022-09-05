@@ -1,0 +1,20 @@
+[package]
+name = "cosmo"
+version = "0.1.0"
+authors = ["Duarte Nunes <duarte@fastmail.com>"]
+license = "Apache-2.0"
+description = "Concurrency utils"
+edition = "2021"
+
+repository = "https://github.com/duarten/cosmo"
+homepage = "https://github.com/duarten/cosmo"
+documentation = "https://duarten.github.io/cosmo"
+keywords = ["data-structures", "channel", "concurrency", "threading", "performance"]
+readme = "../README.md"
+
+[dev-dependencies]
+criterion = "0.3.5"
+
+[[bench]]
+name = "bounded_spsc"
+harness = false
