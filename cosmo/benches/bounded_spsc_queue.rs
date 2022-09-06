@@ -1,11 +1,11 @@
 use std::thread;
 
-use cosmo::sync::{spsc::bounded, TryRecvError};
+use cosmo::sync::{queue::spsc::bounded, TryRecvError};
 use criterion::{criterion_group, criterion_main, Criterion, Throughput};
 
-fn bench_bounded_spsc(c: &mut Criterion) {
+fn bench_bounded_spsc_queue(c: &mut Criterion) {
     const REPETITIONS: u64 = 10_000_000;
-    let mut group = c.benchmark_group("bounded_spsc");
+    let mut group = c.benchmark_group("bounded_spsc_queue");
     group.significance_level(0.1).sample_size(10);
     group.throughput(Throughput::Elements(REPETITIONS));
     group.bench_function("send/recv pair", |b| {
@@ -37,5 +37,5 @@ fn bench_bounded_spsc(c: &mut Criterion) {
     group.finish();
 }
 
-criterion_group!(benches, bench_bounded_spsc);
+criterion_group!(benches, bench_bounded_spsc_queue);
 criterion_main!(benches);

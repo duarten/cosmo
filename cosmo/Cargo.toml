@@ -12,9 +12,18 @@ documentation = "https://duarten.github.io/cosmo"
 keywords = ["data-structures", "channel", "concurrency", "threading", "performance"]
 readme = "../README.md"
 
+[dependencies]
+futures-util = "0.3.24"
+
 [dev-dependencies]
 criterion = "0.3.5"
+futures-task = "0.3.24"
+tokio = { version = "1.21.0", features = ["macros", "rt-multi-thread"] }
 
 [[bench]]
-name = "bounded_spsc"
+name = "bounded_spsc_queue"
+harness = false
+
+[[bench]]
+name = "bounded_spsc_channel"
 harness = false
