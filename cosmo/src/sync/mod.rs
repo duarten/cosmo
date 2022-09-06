@@ -2,7 +2,8 @@
 
 use std::fmt;
 
-pub mod spsc;
+pub mod channel;
+pub mod queue;
 
 /// An error that may be emitted when attempting to send a value on a bounded
 /// channel.
@@ -40,6 +41,25 @@ impl<T> fmt::Display for TrySendError<T> {
         }
     }
 }
+
+impl<T: core::fmt::Debug> std::error::Error for TrySendError<T> {}
+
+/// An error that may be emitted when attempting to send a value.
+#[derive(Copy, Clone, Debug, PartialEq, Eq)]
+pub enum SendError<T> {
+    /// There are no more receiver, so no values can be sent.
+    Disconnected(T),
+}
+
+impl<T> fmt::Display for SendError<T> {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        match self {
+            SendError::Disconnected(..) => "sending on a disconnected queue".fmt(f),
+        }
+    }
+}
+
+impl<T: core::fmt::Debug> std::error::Error for SendError<T> {}
 
 /// An error that may be emitted when attempting to receive a value on bounded
 /// queues.

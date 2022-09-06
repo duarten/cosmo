@@ -86,10 +86,10 @@ impl<T: Send> Buffer<T> {
         if !self.storage[index].has_value.load(Ordering::Acquire) {
             self.sender.lookahead_limit.set(tail + self.lookahead);
             true
-        } else if tail < self.capacity() {
-            !self.storage[tail].has_value.load(Ordering::Acquire)
         } else {
-            false
+            !self.storage[tail & self.mask]
+                .has_value
+                .load(Ordering::Acquire)
         }
     }
 
@@ -164,7 +164,8 @@ impl<T: Send> Sender<T> {
 
     /// Returns true if the channel is full.
     pub fn is_full(&self) -> bool {
-        self.buffer.is_full()
+        let tail = self.buffer.sender.index.load(Ordering::Relaxed);
+        !self.buffer.has_space(tail)
     }
 
     /// Returns the number of values in the queue.
